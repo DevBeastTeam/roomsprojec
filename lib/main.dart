@@ -1,9 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:roomsprojec/admin_dashboard.dart';
-import 'package:roomsprojec/home_page.dart';
-import 'package:roomsprojec/room_model.dart';
+import 'package:get/get.dart';
+import 'package:roomsprojec/admin/admin_dashboard.dart';
+import 'package:roomsprojec/admin/admin_login.dart';
+import 'package:roomsprojec/firebase_options.dart';
+import 'package:roomsprojec/user/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const RoomsApp());
 }
 
@@ -15,42 +20,38 @@ class RoomsApp extends StatefulWidget {
 }
 
 class _RoomsAppState extends State<RoomsApp> {
-  final RoomsModel _roomsModel = RoomsModel.sample();
-
   void _updateState() {
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Rooms Website',
+      title: 'Rooms Project',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
+      // ✅ Initial route
       initialRoute: '/',
-      onGenerateRoute: (settings) {
-        Widget page;
-        switch (settings.name) {
-          case '/admin':
-            page = AdminDashboard(
-              roomsModel: _roomsModel,
-              onUpdate: _updateState,
-            );
-            break;
-          case '/':
-          default:
-            page = HomePage(roomsModel: _roomsModel, onUpdate: _updateState);
-            break;
-        }
-        return MaterialPageRoute(
-          builder: (context) => page,
-          settings: settings,
-        );
-      },
+      // ✅ Routes
+      getPages: [
+        // Home page
+        GetPage(name: '/', page: () => HomePage()),
+        // Admin Dashboard page
+        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(
+          name: '/admin',
+          page: () => AdminDashboard(onUpdate: () {}),
+        ),
+      ],
     );
   }
+}
+
+// ✅ RoomsModel placeholder (simple class without data)
+class RoomsModel {
+  RoomsModel();
 }
