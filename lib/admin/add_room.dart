@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,7 +27,7 @@ class _AddRoomPageState extends State<AddRoomPage> {
       TextEditingController(); // ✅ Contact number
 
   bool _isLoading = false;
-  File? _pickedImageFile;
+  Uint8List? _pickedImageBytes;
 
   // ✅ Pick Image from Gallery
   Future<void> _pickImage() async {
@@ -34,31 +35,30 @@ class _AddRoomPageState extends State<AddRoomPage> {
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
 
     if (picked != null) {
-      setState(() {
-        _pickedImageFile = File(picked.path);
-      });
+      _pickedImageBytes = await picked.readAsBytes();
+      setState(() {});
       await _uploadImageToFirebase();
     }
   }
 
   // ✅ Upload image to Firebase Storage and get media link
   Future<void> _uploadImageToFirebase() async {
-    if (_pickedImageFile == null) return;
+    if (_pickedImageBytes == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('room_images')
-          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+      // final storageRef = FirebaseStorage.instance
+      //     .ref()
+      //     .child('room_images')
+      //     .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
 
-      await storageRef.putFile(_pickedImageFile!);
-      final downloadUrl = await storageRef.getDownloadURL();
+      // await storageRef.putFile(_pickedImageBytes!);
+      // final downloadUrl = await storageRef.getDownloadURL();
 
-      setState(() {
-        _imageController.text = downloadUrl; // ✅ Save media link in controller
-      });
+      // setState(() {
+      //   _imageController.text = downloadUrl; // ✅ Save media link in controller
+      // });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Image uploaded successfully!')),
@@ -110,8 +110,8 @@ class _AddRoomPageState extends State<AddRoomPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imagePreview = _pickedImageFile != null
-        ? Image.file(_pickedImageFile!, height: 160, fit: BoxFit.cover)
+    final imagePreview = _pickedImageBytes != null
+        ? Image.memory(_pickedImageBytes!, height: 160, fit: BoxFit.cover)
         : (_imageController.text.isNotEmpty
               ? Image.network(
                   _imageController.text,

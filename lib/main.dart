@@ -9,7 +9,26 @@ import 'package:roomsprojec/user/home_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // ✅ Setup global media token
+  await setupMediaLinkToken();
+
   runApp(const RoomsApp());
+}
+
+// ✅ Global variable to store MediaLink token
+String mediaToken = '';
+
+Future<void> setupMediaLinkToken() async {
+  // Option 1: Generate token via email (optional)
+  // var token = await MediaLink().generateTokenByEmail(
+  //   "devbeast143@gmail.com",
+  //   shouldPrint: true,
+  // );
+  // mediaToken = token ?? '';
+
+  // Option 2: Set token manually (replace with your actual token)
+  // mediaToken = "YOUR_API_TOKEN_HERE";
 }
 
 class RoomsApp extends StatefulWidget {

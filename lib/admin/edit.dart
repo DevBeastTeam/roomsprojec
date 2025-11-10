@@ -1,12 +1,14 @@
+import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // ✅ Firebase Storage import
+import 'package:media_link_generator/media_link_generator.dart';
+import 'package:roomsprojec/api.dart';
 
 class EditRoomPage extends StatefulWidget {
-  final String roomId; // Firestore document ID
-  final Map<String, dynamic> roomData; // Existing room data
+  final String roomId;
+  final Map<String, dynamic> roomData;
 
   const EditRoomPage({required this.roomId, required this.roomData, super.key});
 
@@ -21,12 +23,12 @@ class _EditRoomPageState extends State<EditRoomPage> {
   late TextEditingController _priceController;
   late TextEditingController _descController;
   late TextEditingController _imageController;
-  late TextEditingController _numberController; // ✅ Room number
-  late TextEditingController _locationController; // ✅ Location
-  late TextEditingController _contactController; // ✅ Contact number
+  late TextEditingController _numberController;
+  late TextEditingController _locationController;
+  late TextEditingController _contactController;
 
   bool _isLoading = false;
-  File? _pickedImageFile;
+  Uint8List? _pickedImageBytes;
 
   @override
   void initState() {
@@ -66,72 +68,65 @@ class _EditRoomPageState extends State<EditRoomPage> {
     super.dispose();
   }
 
-  // ✅ Pick Image from Gallery
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-
-    if (picked != null) {
-      setState(() {
-        _pickedImageFile = File(picked.path);
-      });
-      // ✅ Upload to Firebase Storage after picking
-      await _uploadImageToFirebase();
-    }
-  }
-
-  // ✅ Upload image to Firebase Storage and get media link
-  Future<void> _uploadImageToFirebase() async {
-    if (_pickedImageFile == null) return;
-
-    setState(() => _isLoading = true);
-
+  // ✅ Pick and upload image using media_link_generator
+  Future<void> _pickAndUploadImage() async {
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('room_images')
-          .child(
-            '${widget.roomId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
-          );
+      final ImagePicker picker = ImagePicker();
+      final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
 
-      await storageRef.putFile(_pickedImageFile!);
-      final downloadUrl = await storageRef.getDownloadURL();
+      setState(() => _isLoading = true);
+
+      final bytes = await picked.readAsBytes();
+      _pickedImageBytes = bytes;
+
+      var result = await uploadFileBase64(
+        picked,
+        token: "2f09ddc7ca4c9ba65272b60ae5b09b50", // apna token dalen
+        folderName: "rooms",
+        fromDeviceName: "roomapp",
+        isSecret: false,
+      );
+
+      print(result); // upload ka response check karne ke liye
+
+      print(result); // upload ka response check karne ke liye
 
       setState(() {
-        _imageController.text = downloadUrl; // ✅ Save media link in controller
+        // _imageController.text = imageUrl;
+        _isLoading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Image uploaded successfully!')),
       );
     } catch (e) {
-      debugPrint('❌ Firebase Storage Upload Error: $e');
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      ).showSnackBar(SnackBar(content: Text('❌ Image upload failed: $e')));
     }
   }
 
+  // ✅ Update Firestore Data
   Future<void> _updateRoomInFirestore() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
-      final firestore = FirebaseFirestore.instance;
-
-      await firestore.collection('rooms').doc(widget.roomId).update({
-        'name': _nameController.text.trim(),
-        'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
-        'description': _descController.text.trim(),
-        'image': _imageController.text.trim(),
-        'number': _numberController.text.trim(), // ✅ Save number
-        'location': _locationController.text.trim(), // ✅ Save location
-        'contact': _contactController.text.trim(), // ✅ Save contact
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomId)
+          .update({
+            'name': _nameController.text.trim(),
+            'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
+            'description': _descController.text.trim(),
+            'image': _imageController.text.trim(),
+            'number': _numberController.text.trim(),
+            'location': _locationController.text.trim(),
+            'contact': _contactController.text.trim(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -140,10 +135,10 @@ class _EditRoomPageState extends State<EditRoomPage> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      debugPrint('❌ Firestore Update Error: $e');
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error updating room: $e')));
+      ).showSnackBar(SnackBar(content: Text('❌ Error updating room: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -151,8 +146,8 @@ class _EditRoomPageState extends State<EditRoomPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imagePreview = _pickedImageFile != null
-        ? Image.file(_pickedImageFile!, height: 160, fit: BoxFit.cover)
+    final imagePreview = _pickedImageBytes != null
+        ? Image.memory(_pickedImageBytes!, height: 160, fit: BoxFit.cover)
         : (widget.roomData['image'] != null &&
               widget.roomData['image'].toString().isNotEmpty)
         ? Image.network(
@@ -184,13 +179,19 @@ class _EditRoomPageState extends State<EditRoomPage> {
                 child: imagePreview,
               ),
               const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.image),
-                label: const Text('Choose Image from Gallery'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0A3D62),
-                  foregroundColor: Colors.white,
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _pickAndUploadImage,
+                  icon: const Icon(Icons.image),
+                  label: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Choose & Upload Image'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A3D62),
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -240,23 +241,23 @@ class _EditRoomPageState extends State<EditRoomPage> {
                 decoration: const InputDecoration(labelText: 'Image URL'),
               ),
               const SizedBox(height: 20),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                      onPressed: _updateRoomInFirestore,
-                      icon: const Icon(Icons.save),
-                      label: const Text(
-                        'Update Room',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0A3D62),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 30,
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton.icon(
+                        onPressed: _updateRoomInFirestore,
+                        icon: const Icon(Icons.save),
+                        label: const Text(
+                          'Update Room',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0A3D62),
                         ),
                       ),
-                    ),
+              ),
             ],
           ),
         ),
