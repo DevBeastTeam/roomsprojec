@@ -62,13 +62,14 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Responsive container width
+    // Responsive width based on screen size
     final screenWidth = MediaQuery.of(context).size.width;
-    double containerWidth = screenWidth * 0.95; // mobile default
-    if (screenWidth >= 1200)
+    double containerWidth = screenWidth * 0.95; // default mobile
+    if (screenWidth >= 1200) {
       containerWidth = 600; // desktop
-    else if (screenWidth >= 800)
+    } else if (screenWidth >= 800) {
       containerWidth = 500; // tablet
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
@@ -90,7 +91,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
           : room == null
           ? const Center(child: Text('Room not found'))
           : Center(
-              child: SizedBox(
+              child: Container(
                 width: containerWidth,
                 child: ListView(
                   children: [
