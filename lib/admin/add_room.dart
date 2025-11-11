@@ -41,10 +41,10 @@ class _AddRoomPageState extends State<AddRoomPage> {
     super.dispose();
   }
 
-  // ✅ Pick and upload image using media_link_generator (same as Edit)
+  // ✅ Pick and upload image
   Future<void> _pickAndUploadImage() async {
     try {
-      final ImagePicker picker = ImagePicker();
+      final picker = ImagePicker();
       final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
       if (picked == null) return;
 
@@ -57,7 +57,7 @@ class _AddRoomPageState extends State<AddRoomPage> {
       var link = await uploadFileBase64(
         context,
         picked,
-        token: "2f09ddc7ca4c9ba65272b60ae5b09b50", // apna token
+        token: "YOUR_TOKEN_HERE",
         folderName: "rooms",
         fromDeviceName: "roomapp",
         isSecret: false,
@@ -117,6 +117,14 @@ class _AddRoomPageState extends State<AddRoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Responsive width
+    final screenWidth = MediaQuery.of(context).size.width;
+    double containerWidth = screenWidth * 0.9; // mobile default
+    if (screenWidth >= 1200)
+      containerWidth = 600; // desktop
+    else if (screenWidth >= 800)
+      containerWidth = 500; // tablet
+
     final imagePreview = _pickedImageBytes != null
         ? Image.memory(_pickedImageBytes!, height: 160, fit: BoxFit.cover)
         : (_imageController.text.isNotEmpty
@@ -137,97 +145,104 @@ class _AddRoomPageState extends State<AddRoomPage> {
         backgroundColor: const Color(0xFF0A3D62),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: imagePreview,
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _pickAndUploadImage,
-                  icon: const Icon(Icons.image),
-                  label: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Choose & Upload Image'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0A3D62),
-                    foregroundColor: Colors.white,
+      body: Center(
+        child: SizedBox(
+          width: containerWidth,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imagePreview,
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Room Name'),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Enter room name' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Room Price'),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Enter room price' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _descController,
-                decoration: const InputDecoration(
-                  labelText: 'Room Description',
-                ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Enter description' : null,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _numberController,
-                decoration: const InputDecoration(labelText: 'Room Number'),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(labelText: 'Location'),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _contactController,
-                decoration: const InputDecoration(labelText: 'Contact Number'),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _imageController,
-                readOnly: true,
-                decoration: const InputDecoration(labelText: 'Image URL'),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton.icon(
-                        onPressed: _addRoomToFirestore,
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: const Text(
-                          'Add Room',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0A3D62),
-                        ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _pickAndUploadImage,
+                      icon: const Icon(Icons.image),
+                      label: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Choose & Upload Image'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0A3D62),
+                        foregroundColor: Colors.white,
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Room Name'),
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Enter room name' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Room Price'),
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Enter room price' : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _descController,
+                    decoration: const InputDecoration(
+                      labelText: 'Room Description',
+                    ),
+                    validator: (val) =>
+                        val == null || val.isEmpty ? 'Enter description' : null,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _numberController,
+                    decoration: const InputDecoration(labelText: 'Room Number'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _locationController,
+                    decoration: const InputDecoration(labelText: 'Location'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _contactController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact Number',
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _imageController,
+                    readOnly: true,
+                    decoration: const InputDecoration(labelText: 'Image URL'),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton.icon(
+                            onPressed: _addRoomToFirestore,
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            label: const Text(
+                              'Add Room',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0A3D62),
+                            ),
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

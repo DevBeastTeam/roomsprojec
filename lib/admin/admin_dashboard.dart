@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:roomsprojec/admin/add_room.dart';
 import 'package:roomsprojec/admin/edit.dart';
-import '../user/whatsapp_fab.dart';
 
 class AdminDashboard extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -15,6 +14,8 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
@@ -46,13 +47,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
             builder: (context, constraints) {
               int crossAxisCount = 2;
               double aspectRatio = 0.88;
+              double imageHeight = 180;
 
               if (constraints.maxWidth > 1100) {
                 crossAxisCount = 3;
                 aspectRatio = 1.1;
+                imageHeight = 220;
               } else if (constraints.maxWidth < 600) {
                 crossAxisCount = 1;
                 aspectRatio = 0.75;
+                imageHeight = 150;
               }
 
               return Padding(
@@ -67,7 +71,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   itemBuilder: (context, index) {
                     final room = rooms[index];
-                    return _buildRoomCard(context, room);
+                    return _buildRoomCard(context, room, imageHeight);
                   },
                 ),
               );
@@ -82,16 +86,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
             context,
             MaterialPageRoute(builder: (_) => const AddRoomPage()),
           );
-          if (result == true) {
-            setState(() {}); // refresh UI after returning
-          }
+          if (result == true) setState(() {});
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildRoomCard(BuildContext context, QueryDocumentSnapshot room) {
+  Widget _buildRoomCard(
+    BuildContext context,
+    QueryDocumentSnapshot room,
+    double imageHeight,
+  ) {
     final data = room.data() as Map<String, dynamic>;
 
     return Container(
@@ -110,7 +116,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Room Image using Image.network for Web
+          // Responsive Room Image
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
@@ -119,19 +125,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
             child: (data['image'] != null && data['image'] != '')
                 ? Image.network(
                     data['image'].toString(),
-                    height: 200,
+                    height: imageHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.blue),
+                      return Container(
+                        height: imageHeight,
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Colors.blue),
+                        ),
                       );
                     },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
+                        height: imageHeight,
                         width: double.infinity,
-                        height: 200,
                         color: Colors.grey[300],
                         child: const Icon(
                           Icons.error,
@@ -142,14 +152,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     },
                   )
                 : Container(
+                    height: imageHeight,
                     width: double.infinity,
-                    height: 200,
                     color: Colors.grey[300],
                     child: const Icon(Icons.image, size: 60),
                   ),
           ),
 
-          // Show Image URL as Text
+          // Image URL Text
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
@@ -198,7 +208,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // Edit & Delete Icons
+          // Edit & Delete
           Padding(
             padding: const EdgeInsets.only(right: 8.0, bottom: 6.0, top: 4.0),
             child: Align(

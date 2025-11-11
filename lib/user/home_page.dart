@@ -41,7 +41,6 @@ class _HomePageState extends State<HomePage> {
 
       final fetchedRooms = snapshot.docs.map((doc) {
         final data = doc.data();
-        // Safe handling for missing id
         data['id'] = doc.id ?? '';
         return data;
       }).toList();
@@ -58,8 +57,40 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  int _getCrossAxisCount(double width) {
+    if (width >= 1200) {
+      return 4; // Desktop
+    } else if (width >= 800) {
+      return 3; // Tablet
+    } else {
+      return 2; // Mobile
+    }
+  }
+
+  double _getImageHeight(double width) {
+    if (width >= 1200) {
+      return 250;
+    } else if (width >= 800) {
+      return 200;
+    } else {
+      return 140;
+    }
+  }
+
+  double _getChildAspectRatio(double width) {
+    if (width >= 1200) {
+      return 0.9;
+    } else if (width >= 800) {
+      return 0.85;
+    } else {
+      return 0.75;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
@@ -79,27 +110,32 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(12.0),
               child: GridView.builder(
                 itemCount: rooms.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _getCrossAxisCount(screenWidth),
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.85,
+                  childAspectRatio: _getChildAspectRatio(screenWidth),
                 ),
                 itemBuilder: (context, index) {
                   final room = rooms[index];
-                  return _buildRoomCard(context, room);
+                  return _buildRoomCard(context, room, screenWidth);
                 },
               ),
             ),
     );
   }
 
-  Widget _buildRoomCard(BuildContext context, Map<String, dynamic> room) {
+  Widget _buildRoomCard(
+    BuildContext context,
+    Map<String, dynamic> room,
+    double screenWidth,
+  ) {
     final imageUrl = (room['image'] ?? '').toString().trim();
     final roomId = (room['id'] ?? '').toString();
     final roomName = (room['name'] ?? 'Unnamed Room').toString();
     final roomPrice = room['price'] != null ? room['price'].toString() : '';
     final roomLocation = (room['location'] ?? '').toString();
+    final imageHeight = _getImageHeight(screenWidth);
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -140,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                   ? Image.network(
                       imageUrl,
                       width: double.infinity,
-                      height: 140,
+                      height: imageHeight,
                       fit: BoxFit.cover,
                       key: ValueKey(imageUrl),
                       gaplessPlayback: true,
@@ -148,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                           (context, child, ImageChunkEvent? progress) {
                             if (progress == null) return child;
                             return Container(
-                              height: 140,
+                              height: imageHeight,
                               color: Colors.grey[300],
                               child: const Center(
                                 child: CircularProgressIndicator(
@@ -159,14 +195,14 @@ class _HomePageState extends State<HomePage> {
                           },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          height: 140,
+                          height: imageHeight,
                           color: Colors.grey[300],
                           child: const Icon(Icons.broken_image, size: 60),
                         );
                       },
                     )
                   : Container(
-                      height: 140,
+                      height: imageHeight,
                       width: double.infinity,
                       color: Colors.grey[300],
                       child: const Icon(Icons.image, size: 60),

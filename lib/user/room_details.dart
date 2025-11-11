@@ -62,6 +62,14 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Responsive container width
+    final screenWidth = MediaQuery.of(context).size.width;
+    double containerWidth = screenWidth * 0.95; // mobile default
+    if (screenWidth >= 1200)
+      containerWidth = 600; // desktop
+    else if (screenWidth >= 800)
+      containerWidth = 500; // tablet
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
@@ -81,147 +89,152 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
           ? const Center(child: CircularProgressIndicator())
           : room == null
           ? const Center(child: Text('Room not found'))
-          : ListView(
-              children: [
-                // ✅ Image Section
-                (room?['image'] ?? '').toString().isNotEmpty
-                    ? Image.network(
-                        room!['image'].toString(),
-                        width: double.infinity,
-                        height: 250,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
+          : Center(
+              child: SizedBox(
+                width: containerWidth,
+                child: ListView(
+                  children: [
+                    // ✅ Image Section
+                    (room?['image'] ?? '').toString().isNotEmpty
+                        ? Image.network(
+                            room!['image'].toString(),
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                height: 250,
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF0A3D62),
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 250,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image, size: 80),
+                              );
+                            },
+                          )
+                        : Container(
+                            width: double.infinity,
                             height: 250,
                             color: Colors.grey[300],
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF0A3D62),
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 250,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 80),
-                          );
-                        },
-                      )
-                    : Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image, size: 80),
-                      ),
-
-                // ✅ Details Section
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Room Name
-                      Text(
-                        room!['name']?.toString() ?? 'Unnamed Room',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0A3D62),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Price
-                      if ((room?['price'] ?? '').toString().isNotEmpty)
-                        Text(
-                          '💰 Price: ${room!['price']}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
+                            child: const Icon(Icons.image, size: 80),
                           ),
-                        ),
-                      const SizedBox(height: 12),
 
-                      // Description
-                      Text(
-                        room!['description']?.toString() ??
-                            'No description available.',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.5,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Room Number
-                      if ((room?['number'] ?? '').toString().isNotEmpty)
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.meeting_room,
+                    // ✅ Details Section
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Room Name
+                          Text(
+                            room!['name']?.toString() ?? 'Unnamed Room',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                               color: Color(0xFF0A3D62),
                             ),
-                            const SizedBox(width: 8),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Price
+                          if ((room?['price'] ?? '').toString().isNotEmpty)
                             Text(
-                              'Room No: ${room!['number']}',
+                              '💰 Price: ${room!['price']}',
                               style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green,
                               ),
                             ),
-                          ],
-                        ),
-                      const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                      // Location
-                      if ((room?['location'] ?? '').toString().isNotEmpty)
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.redAccent,
+                          // Description
+                          Text(
+                            room!['description']?.toString() ??
+                                'No description available.',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              height: 1.5,
+                              color: Colors.black87,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Location: ${room!['location']}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Room Number
+                          if ((room?['number'] ?? '').toString().isNotEmpty)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.meeting_room,
+                                  color: Color(0xFF0A3D62),
                                 ),
-                              ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Room No: ${room!['number']}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                      // Contact
-                      if ((room?['contact'] ?? '').toString().isNotEmpty)
-                        Row(
-                          children: [
-                            const Icon(Icons.phone, color: Colors.green),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Contact: ${room!['contact']}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
+                          // Location
+                          if ((room?['location'] ?? '').toString().isNotEmpty)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on,
+                                  color: Colors.redAccent,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Location: ${room!['location']}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                    ],
-                  ),
+                          const SizedBox(height: 12),
+
+                          // Contact
+                          if ((room?['contact'] ?? '').toString().isNotEmpty)
+                            Row(
+                              children: [
+                                const Icon(Icons.phone, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Contact: ${room!['contact']}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
     );
   }

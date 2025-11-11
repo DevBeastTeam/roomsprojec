@@ -1,19 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'admin_dashboard.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // Controllers for email & password
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Get screen width to adjust layout
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Set container width depending on device type
+    double containerWidth = screenWidth * 0.9; // mobile default
+    if (screenWidth >= 1200) {
+      containerWidth = 450; // desktop
+    } else if (screenWidth >= 800) {
+      containerWidth = 400; // tablet
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A3D62), // dark blue background
+      backgroundColor: const Color(0xFF0A3D62),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
+            width: containerWidth,
             padding: const EdgeInsets.all(24),
-            margin: const EdgeInsets.symmetric(horizontal: 24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -45,6 +72,7 @@ class LoginPage extends StatelessWidget {
 
                 // EMAIL FIELD
                 TextField(
+                  controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.email),
@@ -57,6 +85,7 @@ class LoginPage extends StatelessWidget {
 
                 // PASSWORD FIELD
                 TextField(
+                  controller: passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -80,10 +109,8 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      // static page, no real login
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Login pressed')),
-                      );
+                      // Navigate to Admin Dashboard
+                      Get.offAll(() => AdminDashboard(onUpdate: () {}));
                     },
                     child: const Text(
                       'Login',
