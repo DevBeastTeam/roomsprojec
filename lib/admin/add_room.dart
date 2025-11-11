@@ -19,12 +19,9 @@ class _AddRoomPageState extends State<AddRoomPage> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageController = TextEditingController();
-  final TextEditingController _numberController =
-      TextEditingController(); // Room number
-  final TextEditingController _locationController =
-      TextEditingController(); // Location
-  final TextEditingController _contactController =
-      TextEditingController(); // Contact
+  final TextEditingController _numberController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
 
   bool _isLoading = false;
   Uint8List? _pickedImageBytes;
@@ -126,15 +123,15 @@ class _AddRoomPageState extends State<AddRoomPage> {
       containerWidth = 500; // tablet
 
     final imagePreview = _pickedImageBytes != null
-        ? Image.memory(_pickedImageBytes!, height: 160, fit: BoxFit.cover)
+        ? Image.memory(_pickedImageBytes!, height: 180, fit: BoxFit.cover)
         : (_imageController.text.isNotEmpty
               ? Image.network(
                   _imageController.text,
-                  height: 160,
+                  height: 180,
                   fit: BoxFit.cover,
                 )
               : Container(
-                  height: 160,
+                  height: 180,
                   color: Colors.grey[300],
                   child: const Center(child: Text('No Image Selected')),
                 ));
@@ -144,88 +141,127 @@ class _AddRoomPageState extends State<AddRoomPage> {
         title: const Text('Add Room', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF0A3D62),
         centerTitle: true,
+        elevation: 3,
       ),
       body: Center(
         child: SizedBox(
           width: containerWidth,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Form(
               key: _formKey,
               child: ListView(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     child: imagePreview,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 55,
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _pickAndUploadImage,
                       icon: const Icon(Icons.image),
                       label: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Choose & Upload Image'),
+                          : const Text(
+                              'Choose & Upload Image',
+                              style: TextStyle(fontSize: 16),
+                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0A3D62),
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
+
+                  // Room Name
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Room Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Room Name',
+                      border: OutlineInputBorder(),
+                    ),
                     validator: (val) =>
                         val == null || val.isEmpty ? 'Enter room name' : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Room Price
                   TextFormField(
                     controller: _priceController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Room Price'),
+                    decoration: const InputDecoration(
+                      labelText: 'Room Price',
+                      border: OutlineInputBorder(),
+                    ),
                     validator: (val) =>
                         val == null || val.isEmpty ? 'Enter room price' : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Description
                   TextFormField(
                     controller: _descController,
                     decoration: const InputDecoration(
                       labelText: 'Room Description',
+                      border: OutlineInputBorder(),
                     ),
                     validator: (val) =>
                         val == null || val.isEmpty ? 'Enter description' : null,
                     maxLines: 3,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Room Number
                   TextFormField(
                     controller: _numberController,
-                    decoration: const InputDecoration(labelText: 'Room Number'),
+                    decoration: const InputDecoration(
+                      labelText: 'Room Number',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Location
                   TextFormField(
                     controller: _locationController,
-                    decoration: const InputDecoration(labelText: 'Location'),
+                    decoration: const InputDecoration(
+                      labelText: 'Location',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Contact
                   TextFormField(
                     controller: _contactController,
                     decoration: const InputDecoration(
                       labelText: 'Contact Number',
+                      border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+
+                  // Image URL
                   TextFormField(
                     controller: _imageController,
                     readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Image URL'),
+                    decoration: const InputDecoration(
+                      labelText: 'Image URL',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
+
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 55,
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : ElevatedButton.icon(
@@ -233,10 +269,17 @@ class _AddRoomPageState extends State<AddRoomPage> {
                             icon: const Icon(Icons.add, color: Colors.white),
                             label: const Text(
                               'Add Room',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0A3D62),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                   ),

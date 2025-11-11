@@ -141,16 +141,16 @@ class _EditRoomPageState extends State<EditRoomPage> {
       containerWidth = 500; // tablet
 
     final imagePreview = _pickedImageBytes != null
-        ? Image.memory(_pickedImageBytes!, height: 160, fit: BoxFit.cover)
+        ? Image.memory(_pickedImageBytes!, height: 300, fit: BoxFit.cover)
         : (widget.roomData['image'] != null &&
               widget.roomData['image'].toString().isNotEmpty)
         ? Image.network(
             widget.roomData['image'],
-            height: 160,
+            height: 300, // 👈 Increased from 200 to 300
             fit: BoxFit.cover,
           )
         : Container(
-            height: 160,
+            height: 300, // 👈 Increased from 200 to 300
             color: Colors.grey[300],
             child: const Center(child: Text('No Image Selected')),
           );
@@ -171,6 +171,7 @@ class _EditRoomPageState extends State<EditRoomPage> {
               key: _formKey,
               child: ListView(
                 children: [
+                  const SizedBox(height: 10), // top gap
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: imagePreview,

@@ -95,17 +95,18 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                 width: containerWidth,
                 child: ListView(
                   children: [
+                    const SizedBox(height: 15), // ✅ Gap below AppBar
                     // ✅ Image Section
                     (room?['image'] ?? '').toString().isNotEmpty
                         ? Image.network(
                             room!['image'].toString(),
                             width: double.infinity,
-                            height: 250,
+                            height: 300, // increased height
                             fit: BoxFit.cover,
                             loadingBuilder: (context, child, progress) {
                               if (progress == null) return child;
                               return Container(
-                                height: 250,
+                                height: 300,
                                 color: Colors.grey[300],
                                 child: const Center(
                                   child: CircularProgressIndicator(
@@ -116,7 +117,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                             },
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                height: 250,
+                                height: 300,
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.broken_image, size: 80),
                               );
@@ -124,14 +125,14 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                           )
                         : Container(
                             width: double.infinity,
-                            height: 250,
+                            height: 300,
                             color: Colors.grey[300],
                             child: const Icon(Icons.image, size: 80),
                           ),
 
                     // ✅ Details Section
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(18.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -139,12 +140,12 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                           Text(
                             room!['name']?.toString() ?? 'Unnamed Room',
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 26,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0A3D62),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
 
                           // Price
                           if ((room?['price'] ?? '').toString().isNotEmpty)
@@ -156,7 +157,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                                 color: Colors.green,
                               ),
                             ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
 
                           // Description
                           Text(
@@ -164,11 +165,11 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                                 'No description available.',
                             style: const TextStyle(
                               fontSize: 16,
-                              height: 1.5,
+                              height: 1.6,
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
 
                           // Room Number
                           if ((room?['number'] ?? '').toString().isNotEmpty)
@@ -189,11 +190,12 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
 
                           // Location
                           if ((room?['location'] ?? '').toString().isNotEmpty)
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Icon(
                                   Icons.location_on,
@@ -212,7 +214,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
 
                           // Contact
                           if ((room?['contact'] ?? '').toString().isNotEmpty)
