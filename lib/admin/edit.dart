@@ -80,7 +80,8 @@ class _EditRoomPageState extends State<EditRoomPage> {
       final bytes = await picked.readAsBytes();
       _pickedImageBytes = bytes;
 
-      var result = await uploadFileBase64(
+      var link = await uploadFileBase64(
+        context,
         picked,
         token: "2f09ddc7ca4c9ba65272b60ae5b09b50", // apna token dalen
         folderName: "rooms",
@@ -88,23 +89,12 @@ class _EditRoomPageState extends State<EditRoomPage> {
         isSecret: false,
       );
 
-      print(result); // upload ka response check karne ke liye
-
-      print(result); // upload ka response check karne ke liye
-
       setState(() {
-        // _imageController.text = imageUrl;
+        _imageController.text = link;
         _isLoading = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Image uploaded successfully!')),
-      );
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('❌ Image upload failed: $e')));
     }
   }
 

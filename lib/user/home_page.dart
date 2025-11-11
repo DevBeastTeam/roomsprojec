@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:roomsprojec/user/room_details.dart';
+import 'room_details.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,8 +21,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initializeFirebase() async {
-    await Firebase.initializeApp();
-    _fetchRooms();
+    try {
+      await Firebase.initializeApp();
+      await _fetchRooms();
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Firebase Error: $e')));
+    }
   }
 
   Future<void> _fetchRooms() async {
@@ -34,7 +41,8 @@ class _HomePageState extends State<HomePage> {
 
       final fetchedRooms = snapshot.docs.map((doc) {
         final data = doc.data();
-        data['id'] = doc.id; // ✅ store document ID for navigation
+        // Safe handling for missing id
+        data['id'] = doc.id ?? '';
         return data;
       }).toList();
 
@@ -87,15 +95,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildRoomCard(BuildContext context, Map<String, dynamic> room) {
+    final imageUrl = (room['image'] ?? '').toString().trim();
+    final roomId = (room['id'] ?? '').toString();
+    final roomName = (room['name'] ?? 'Unnamed Room').toString();
+    final roomPrice = room['price'] != null ? room['price'].toString() : '';
+    final roomLocation = (room['location'] ?? '').toString();
+
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RoomDetailsPage(roomId: room['id']),
-          ),
-        );
+        if (roomId.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => RoomDetailsPage(roomId: roomId)),
+          );
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Room ID is missing')));
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -103,34 +121,47 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black12.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-              offset: const Offset(0, 5),
+              color: Colors.black12.withOpacity(0.05),
+              blurRadius: 6,
+              spreadRadius: 1,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Room image (fixed height & width)
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
-              child: room['image'] != null && room['image'] != ''
+              child: imageUrl.isNotEmpty
                   ? Image.network(
-                      room['image'],
+                      imageUrl,
                       width: double.infinity,
-                      height: 140, // ✅ slightly taller, looks balanced
+                      height: 140,
                       fit: BoxFit.cover,
+                      key: ValueKey(imageUrl),
+                      gaplessPlayback: true,
+                      loadingBuilder:
+                          (context, child, ImageChunkEvent? progress) {
+                            if (progress == null) return child;
+                            return Container(
+                              height: 140,
+                              color: Colors.grey[300],
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF0A3D62),
+                                ),
+                              ),
+                            );
+                          },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           height: 140,
-                          width: double.infinity,
                           color: Colors.grey[300],
-                          child: const Icon(Icons.image, size: 60),
+                          child: const Icon(Icons.broken_image, size: 60),
                         );
                       },
                     )
@@ -141,15 +172,13 @@ class _HomePageState extends State<HomePage> {
                       child: const Icon(Icons.image, size: 60),
                     ),
             ),
-
-            // ✅ Room info section
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    room['name'] ?? 'Unnamed Room',
+                    roomName,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -160,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    room['price'] != null ? "Price: ${room['price']}" : '',
+                    roomPrice.isNotEmpty ? "Price: $roomPrice" : '',
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.w600,
@@ -169,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    room['location'] ?? '',
+                    roomLocation,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

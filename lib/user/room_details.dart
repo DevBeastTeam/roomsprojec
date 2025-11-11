@@ -23,8 +23,15 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
   }
 
   Future<void> _initializeFirebaseAndFetch() async {
-    await Firebase.initializeApp();
-    _fetchRoomDetails();
+    try {
+      await Firebase.initializeApp();
+      await _fetchRoomDetails();
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Firebase initialization error: $e')),
+      );
+    }
   }
 
   Future<void> _fetchRoomDetails() async {
@@ -67,7 +74,9 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
         elevation: 3,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      floatingActionButton: const WhatsAppFAB(phone: '+923001234567'),
+      floatingActionButton: (room?['contact'] ?? '').toString().isNotEmpty
+          ? WhatsAppFAB(phone: room!['contact'].toString())
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : room == null
@@ -75,12 +84,31 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
           : ListView(
               children: [
                 // ✅ Image Section
-                room!['image'] != null && room!['image'] != ''
+                (room?['image'] ?? '').toString().isNotEmpty
                     ? Image.network(
-                        room!['image'],
+                        room!['image'].toString(),
                         width: double.infinity,
                         height: 250,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            height: 250,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF0A3D62),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 250,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.broken_image, size: 80),
+                          );
+                        },
                       )
                     : Container(
                         width: double.infinity,
@@ -97,7 +125,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                     children: [
                       // Room Name
                       Text(
-                        room!['name'] ?? 'Unnamed Room',
+                        room!['name']?.toString() ?? 'Unnamed Room',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -107,21 +135,21 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                       const SizedBox(height: 10),
 
                       // Price
-                      Text(
-                        room!['price'] != null
-                            ? '💰 Price: ${room!['price']}'
-                            : '',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                      if ((room?['price'] ?? '').toString().isNotEmpty)
+                        Text(
+                          '💰 Price: ${room!['price']}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 12),
 
                       // Description
                       Text(
-                        room!['description'] ?? 'No description available.',
+                        room!['description']?.toString() ??
+                            'No description available.',
                         style: const TextStyle(
                           fontSize: 16,
                           height: 1.5,
@@ -131,8 +159,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                       const SizedBox(height: 16),
 
                       // Room Number
-                      if (room!['number'] != null &&
-                          room!['number'].toString().isNotEmpty)
+                      if ((room?['number'] ?? '').toString().isNotEmpty)
                         Row(
                           children: [
                             const Icon(
@@ -153,8 +180,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                       const SizedBox(height: 12),
 
                       // Location
-                      if (room!['location'] != null &&
-                          room!['location'].toString().isNotEmpty)
+                      if ((room?['location'] ?? '').toString().isNotEmpty)
                         Row(
                           children: [
                             const Icon(
@@ -177,8 +203,7 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
                       const SizedBox(height: 12),
 
                       // Contact
-                      if (room!['contact'] != null &&
-                          room!['contact'].toString().isNotEmpty)
+                      if ((room?['contact'] ?? '').toString().isNotEmpty)
                         Row(
                           children: [
                             const Icon(Icons.phone, color: Colors.green),

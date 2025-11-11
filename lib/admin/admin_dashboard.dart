@@ -86,15 +86,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
             setState(() {}); // refresh UI after returning
           }
         },
-        child: const Icon(
-          Icons.add,
-          color: Colors.white, // ✅ Icon color changed to white
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  // ✅ Updated Room Card
   Widget _buildRoomCard(BuildContext context, QueryDocumentSnapshot room) {
     final data = room.data() as Map<String, dynamic>;
 
@@ -114,18 +110,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Room Image
+          // Room Image using Image.network for Web
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
             ),
-            child: data['image'] != null && data['image'] != ''
+            child: (data['image'] != null && data['image'] != '')
                 ? Image.network(
-                    data['image'],
-                    fit: BoxFit.cover,
+                    data['image'].toString(),
+                    height: 200,
                     width: double.infinity,
-                    height: 200, // Same as HomePage
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.blue),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.error,
+                          size: 60,
+                          color: Colors.red,
+                        ),
+                      );
+                    },
                   )
                 : Container(
                     width: double.infinity,
@@ -135,9 +149,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
           ),
 
+          // Show Image URL as Text
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Text(
+              data['image']?.toString() ?? 'No Image URL',
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
           // Room Details
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // ✅ Firebase Storage
+import 'package:media_link_generator/media_link_generator.dart';
+import 'package:roomsprojec/api.dart'; // Upload function
 
 class AddRoomPage extends StatefulWidget {
   const AddRoomPage({super.key});
@@ -20,59 +20,66 @@ class _AddRoomPageState extends State<AddRoomPage> {
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _imageController = TextEditingController();
   final TextEditingController _numberController =
-      TextEditingController(); // ✅ Room number
+      TextEditingController(); // Room number
   final TextEditingController _locationController =
-      TextEditingController(); // ✅ Location
+      TextEditingController(); // Location
   final TextEditingController _contactController =
-      TextEditingController(); // ✅ Contact number
+      TextEditingController(); // Contact
 
   bool _isLoading = false;
   Uint8List? _pickedImageBytes;
 
-  // ✅ Pick Image from Gallery
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-
-    if (picked != null) {
-      _pickedImageBytes = await picked.readAsBytes();
-      setState(() {});
-      await _uploadImageToFirebase();
-    }
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    _descController.dispose();
+    _imageController.dispose();
+    _numberController.dispose();
+    _locationController.dispose();
+    _contactController.dispose();
+    super.dispose();
   }
 
-  // ✅ Upload image to Firebase Storage and get media link
-  Future<void> _uploadImageToFirebase() async {
-    if (_pickedImageBytes == null) return;
-
-    setState(() => _isLoading = true);
-
+  // ✅ Pick and upload image using media_link_generator (same as Edit)
+  Future<void> _pickAndUploadImage() async {
     try {
-      // final storageRef = FirebaseStorage.instance
-      //     .ref()
-      //     .child('room_images')
-      //     .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final ImagePicker picker = ImagePicker();
+      final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
 
-      // await storageRef.putFile(_pickedImageBytes!);
-      // final downloadUrl = await storageRef.getDownloadURL();
+      setState(() => _isLoading = true);
 
-      // setState(() {
-      //   _imageController.text = downloadUrl; // ✅ Save media link in controller
-      // });
+      final bytes = await picked.readAsBytes();
+      _pickedImageBytes = bytes;
+
+      // Upload using your API function
+      var link = await uploadFileBase64(
+        context,
+        picked,
+        token: "2f09ddc7ca4c9ba65272b60ae5b09b50", // apna token
+        folderName: "rooms",
+        fromDeviceName: "roomapp",
+        isSecret: false,
+      );
+
+      setState(() {
+        _imageController.text = link;
+        _isLoading = false;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Image uploaded successfully!')),
       );
     } catch (e) {
-      debugPrint('❌ Firebase Storage Upload Error: $e');
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      ).showSnackBar(SnackBar(content: Text('❌ Error uploading image: $e')));
     }
   }
 
+  // ✅ Add room to Firestore
   Future<void> _addRoomToFirestore() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -86,9 +93,9 @@ class _AddRoomPageState extends State<AddRoomPage> {
         'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
         'description': _descController.text.trim(),
         'image': _imageController.text.trim(),
-        'number': _numberController.text.trim(), // ✅ Save number
-        'location': _locationController.text.trim(), // ✅ Save location
-        'contact': _contactController.text.trim(), // ✅ Save contact
+        'number': _numberController.text.trim(),
+        'location': _locationController.text.trim(),
+        'contact': _contactController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -99,10 +106,10 @@ class _AddRoomPageState extends State<AddRoomPage> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      debugPrint('❌ Firestore Error: $e');
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error adding room: $e')));
+      ).showSnackBar(SnackBar(content: Text('❌ Error adding room: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -141,13 +148,19 @@ class _AddRoomPageState extends State<AddRoomPage> {
                 child: imagePreview,
               ),
               const SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.image),
-                label: const Text('Choose Image from Gallery'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0A3D62),
-                  foregroundColor: Colors.white,
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _pickAndUploadImage,
+                  icon: const Icon(Icons.image),
+                  label: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Choose & Upload Image'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A3D62),
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -197,23 +210,23 @@ class _AddRoomPageState extends State<AddRoomPage> {
                 decoration: const InputDecoration(labelText: 'Image URL'),
               ),
               const SizedBox(height: 20),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                      onPressed: _addRoomToFirestore,
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      label: const Text(
-                        'Add Room',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0A3D62),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 30,
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton.icon(
+                        onPressed: _addRoomToFirestore,
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: const Text(
+                          'Add Room',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0A3D62),
                         ),
                       ),
-                    ),
+              ),
             ],
           ),
         ),
