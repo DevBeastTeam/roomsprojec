@@ -23,6 +23,7 @@ Email:
 Password:
     123456
 
+<<<<<<< HEAD
 ![Login Page](https://raw.githubusercontent.com/reeb-tech/roomproject/main/demo_images/login.png)
 
 
@@ -32,6 +33,14 @@ Password:
 <img src="demoproj/home.png.png" style="width:300px;"/>
 <img src="demoproj/editpage.png" style="width:300px;"/>
 <img src="demoproj/login.png" style="width:300px;"/>
+=======
+<img src="demo_images/add.png" style="width:300px;"/>
+<img src="demo_images/admin.png" style="width:300px;"/>
+<img src="demo_images/detail.png" style="width:300px;"/>
+<img src="demo_images/home.png.png" style="width:300px;"/>
+<img src="demo_images/editpage.png" style="width:300px;"/>
+<img src="demo_images/login.png" style="width:300px;"/>
+>>>>>>> 010f82106de78529c7120223f3de2eac7e62ebae
 
 
 
