@@ -23,12 +23,12 @@ Email:
 Password:
     123456
 
-<img src="demo/add.png" style="width:300px;"/>
-<img src="demo/admin.png" style="width:300px;"/>
-<img src="demo/detail.png" style="width:300px;"/>
-<img src="demo/home.png.png" style="width:300px;"/>
-<img src="demo/editpage.png" style="width:300px;"/>
-<img src="demo/login.png" style="width:300px;"/>
+<img src="demo_images/add.png" style="width:300px;"/>
+<img src="demo_images/admin.png" style="width:300px;"/>
+<img src="demo_images/detail.png" style="width:300px;"/>
+<img src="demo_images/home.png.png" style="width:300px;"/>
+<img src="demo_images/editpage.png" style="width:300px;"/>
+<img src="demo_images/login.png" style="width:300px;"/>
 
 
 
